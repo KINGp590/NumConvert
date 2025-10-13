@@ -1,45 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>NumVerse</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#121212">
+  <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
-  <script>
-    const manifest = {
-      "name": "NumVerse",
-      "short_name": "NumVerse",
-      "start_url": "./",
-      "display": "standalone",
-      "background_color": "#121212",
-      "theme_color": "#00bcd4",
-      "orientation": "portrait",
-      "icons": [
-        { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
-        { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(blob);
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        const swBlob = new Blob([`
-          self.addEventListener('install', e => self.skipWaiting());
-          self.addEventListener('fetch', e => {
-            e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-          });
-        `], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(swBlob);
-        navigator.serviceWorker.register(swUrl);
-      });
-    }
-  </script>
   <style>
     body { background: #121212; color: white; font-family: sans-serif; padding: 20px; margin: 0; }
     .light { background: #f0f0f0; color: #111; }
@@ -56,8 +23,10 @@
   <div class="container">
     <h1>NumVerse</h1>
     <p class="tagline">Convert between Binary, Decimal, Octal, and Hexadecimal</p>
+
     <label for="number">Enter Number:</label>
     <input type="text" id="number" placeholder="e.g. 1010 or A3">
+
     <label for="source">From:</label>
     <select id="source">
       <option value="binary">Binary</option>
@@ -65,6 +34,7 @@
       <option value="octal">Octal</option>
       <option value="hex">Hex</option>
     </select>
+
     <label for="target">To:</label>
     <select id="target">
       <option value="binary">Binary</option>
@@ -72,11 +42,14 @@
       <option value="octal">Octal</option>
       <option value="hex" selected>Hex</option>
     </select>
+
     <button id="convert">Convert</button>
     <button id="themeToggle">Toggle Theme</button>
+
     <div id="result" class="output"></div>
     <div id="steps" class="steps"></div>
   </div>
+
   <script>
     function validateNumber(system, str) {
       const maps = {
@@ -87,6 +60,7 @@
       };
       return maps[system]?.test(str.trim());
     }
+
     function toDecimal(str, base) {
       let steps = [], result = 0;
       const chars = str.toUpperCase().trim().split('').reverse();
@@ -100,6 +74,7 @@
       });
       return { result, steps };
     }
+
     function fromDecimal(decimal, base) {
       const hexMap = "0123456789ABCDEF";
       let steps = [], digits = [];
@@ -113,6 +88,7 @@
       }
       return { result: digits.join(""), steps };
     }
+
     function convertNumber(inputStr, fromBase, toBase) {
       const baseMap = { binary: 2, octal: 8, decimal: 10, hex: 16 };
       let steps = [];
@@ -134,6 +110,7 @@
         return { result, steps: steps.concat(["→ Convert to target base:"], s2) };
       }
     }
+
     document.getElementById("convert").addEventListener("click", () => {
       const number = document.getElementById("number").value;
       const source = document.getElementById("source").value;
@@ -150,10 +127,20 @@
           steps.map(s => `<li>${s}</li>`).join("") + "</ul>";
       }
     });
+
     document.getElementById("themeToggle").addEventListener("click", () => {
       document.body.classList.toggle("dark");
       document.body.classList.toggle("light");
     });
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(() => console.log('Service worker registered'))
+          .catch(err => console.error('Service worker registration failed:', err));
+      });
+    }
   </script>
 </body>
 </html>
